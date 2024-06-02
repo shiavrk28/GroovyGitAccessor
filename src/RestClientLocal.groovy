@@ -3,8 +3,7 @@ import groovy.json.JsonSlurper
 class RestClientLocal {
 
     def baseUrl = "https://api.github.com";
-    //def gitToken="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"
-    def gitToken="token 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"
+    def gitToken=""
     def postRequest(url, method, message) {
     def url2=new URL(baseUrl+url);
         println(">>$url2")
