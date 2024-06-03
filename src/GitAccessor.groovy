@@ -8,34 +8,82 @@ class GitAccessor extends TimerTask{
 
 
     def gitRequests() {
+        def properties=new Properties();
+        getClass().getResource("/res/applications.properties").withInputStream {
+            properties.load(it)
+        }
+        println(properties."GIT_TOKEN")
+        def gitToken=properties."GIT_TOKEN".toString().replaceAll("\"","")
         def lines =[]
-        getClass().getResource("/Input.txt").eachLine { lines << it.split(": ")[1] }
+        def repo = ""
+        def owner = ""
+        def head=""
+        def base=""
+        def pull_no=""
+        def title=""
+        def commit_msg=""
+        def request=""
+        getClass().getResource("/Input.txt").eachLine {
+            def var=it.split(":")[0].toString().toLowerCase().trim()
+            switch(var){
+                case "repo name":
+                    repo=it.split(":")[1].toString().trim()
+                case "owner":
+                    owner=it.split(":")[1].toString().trim()
+                case "head":
+                    head=it.split(":")[1].toString().trim()
+                case "base":
+                    base=it.split(":")[1].toString().trim()
+                case "title":
+                    title=it.split(":")[1].toString().trim()
+                case "pull number":
+                    pull_no=it.split(":")[1].toString().trim()
+                case "commit message":
+                    commit_msg=it.split(":")[1].toString().trim()
+            }
+            lines << it.split(": ")[1]
+        }
         println "${lines}"
-        println lines[2];
+        println ">>"+repo+" owner >>"+owner+" head>> "+head;
         //def repoName=readln 'Input the git repo name?';
-        def repo = lines[0]
-        def owner = lines[1]
+       // def repo = lines[0]
+       // def owner = lines[1]
         def repo1 = "37signals"
 
         RestClientLocal rcl = new RestClientLocal();
-        def endpoint1 = "/repos/" + repo1 + "/sub/issues"
-        def endpoint2 = "/repos/" + owner + "/" + repo + "/pulls"
-        def endpoint3 = "/repos/" + owner + "/" + repo + "/pulls/" + lines[6] + "/merge"
-        def pull_req_body = new JsonBuilder([
-                title: lines[2],
-                head : lines[4],
-                base : lines[3]
-        ]).toPrettyString()
-
-        def merge_req_body = new JsonBuilder([
-                commit_title  : lines[2],
-                commit_message: lines[4]
-        ]).toPrettyString()
-        println pull_req_body;
+        def endpoint=""
+        def reqBody=""
+        def reqMethod="GET"
+        def req=lines[5].toString()
+        if(req.equalsIgnoreCase("PULL")) {
+            endpoint = properties."PULL_REQ".replace("<owner>", owner).replace("<repo>", repo).replaceAll("\"","")
+            reqBody=new JsonBuilder([
+                    title: title,
+                    head : head,
+                    base : base
+            ]).toPrettyString()
+            reqMethod=properties.POST
+        }
+        else if(req.equalsIgnoreCase("MERGE")) {
+            endpoint = properties."MERGE_REQ".replace("<owner>", owner).replace("<repo>", repo).replace("<pullno>", pull_no).replaceAll("\"","")
+            reqBody=new JsonBuilder([
+                    commit_title  : title,
+                    commit_message: commit_msg
+            ]).toPrettyString()
+            reqMethod=properties.PUT
+        }
+        println "endpoint $endpoint"
+        println "token $gitToken"
+        println "method $reqMethod"
+        println "Request body $reqBody";
 
         //rcl.postRequest(endpoint1,"GET",null)
- rcl.postRequest(endpoint2,"POST",pull_req_body)
-        //rcl.postRequest(endpoint3,"PUT",merge_req_body)
+def result1=rcl.postRequest(endpoint,reqMethod,reqBody,gitToken)
+        if(result1.message!=null)
+            println "Request Status : "+result1.message
+        def errors=result1.errors
+        errors.each{println("Error Message : "+ it.message)}
+        //rcl.postRequest(endpoint3,"PUT",merge_req_body,properties."GIT_TOKEN".to)
     }
 
     @Override

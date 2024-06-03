@@ -2,42 +2,43 @@ import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
 class RestClientLocal {
 
-    def baseUrl = "https://api.github.com";
-    def gitToken=""
-    def postRequest(url, method, message) {
-    def url2=new URL(baseUrl+url);
-        println(">>$url2")
-        if (method.equals("GET")) {
-            def get = url2.openConnection();
+    def postRequest(url, method, message, gitToken) {
+       /* if (method.equals("GET")) {
+            def get = url.openConnection();
             def getRC = get.getResponseCode();
             println(getRC);
             if (getRC.equals(200)) {
                 println(get.getInputStream().getText());
             }
-        } else {
-            def post = url2.openConnection();
-            post.setRequestMethod(method)
-            post.setRequestProperty("Authorization", gitToken);
-            post.setRequestProperty("Content-Type", "application/json")
-            post.setDoOutput(true)
-            post.getOutputStream().write(message.getBytes("UTF-8"))
+        } else {*/
+
+        def uri=new URL(url)
+            def conn = uri.openConnection();
+            conn.setRequestMethod(method)
+            conn.setRequestProperty("Authorization", gitToken);
+            conn.setRequestProperty("Content-Type", "application/json")
+            conn.setDoOutput(true)
+            conn.getOutputStream().write(message.getBytes("UTF-8"))
 
             def response = [:]
 
-            response.code = post.getResponseCode()
-            response.message = post.getResponseMessage()
+            response.code = conn.getResponseCode()
+            response.message = conn.getResponseMessage()
+           // response.data=conn.getResponseData()
             if (response.code >= 400) {
                 try {
-                    response.body = post.getErrorStream()?.getText("UTF-8")
+                    response.body = conn.getErrorStream()?.getText("UTF-8")
                 } catch (e) {
                 }
             } else {
-                response.body = post.getInputStream()?.getText("UTF-8")
+                response.body = conn.getInputStream()?.getText("UTF-8")
             }
-            assert response.code in [200, 201]: "http call failure ${response.code}: ${response.body ?: response.message}"
-            println response.message;
-            return response
-        }
+            //assert response.code in [200, 201]: "http call failure ${response.code}: ${response.body ?: response.message}"
+        //println ">>"+response.body
+            def result=new JsonSlurper().parseText(response.body)
+            println result;
+            return result
+      //  }
 
 
 
