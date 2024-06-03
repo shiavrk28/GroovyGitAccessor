@@ -1,5 +1,5 @@
 
 static void main(String[] args) {
-  println "Hello world!"
+  println "Groovy Git Accessor"
    def gitApiAccess= new GitApiAccess();
 }

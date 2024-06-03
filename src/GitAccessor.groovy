@@ -12,8 +12,7 @@ class GitAccessor extends TimerTask{
         getClass().getResource("/res/applications.properties").withInputStream {
             properties.load(it)
         }
-        println(properties."GIT_TOKEN")
-        def gitToken=properties."GIT_TOKEN".toString().replaceAll("\"","")
+        def gitToken=properties.GIT_TOKEN.toString().replaceAll("\"","")
         def lines =[]
         def repo = ""
         def owner = ""
@@ -43,12 +42,6 @@ class GitAccessor extends TimerTask{
             }
             lines << it.split(": ")[1]
         }
-        println "${lines}"
-        println ">>"+repo+" owner >>"+owner+" head>> "+head;
-        //def repoName=readln 'Input the git repo name?';
-       // def repo = lines[0]
-       // def owner = lines[1]
-        def repo1 = "37signals"
 
         RestClientLocal rcl = new RestClientLocal();
         def endpoint=""
@@ -72,10 +65,6 @@ class GitAccessor extends TimerTask{
             ]).toPrettyString()
             reqMethod=properties.PUT
         }
-        println "endpoint $endpoint"
-        println "token $gitToken"
-        println "method $reqMethod"
-        println "Request body $reqBody";
 
         //rcl.postRequest(endpoint1,"GET",null)
 def result1=rcl.postRequest(endpoint,reqMethod,reqBody,gitToken)
